@@ -1,0 +1,63 @@
+-- Task 1
+select distinct(City)
+from Person.Address
+order by City desc
+
+-- Task 2
+select *
+from Sales.SalesPerson
+where Bonus between 2500 and 5000
+order by Bonus
+
+-- Task 3
+select pp.Name "Product Name", pt.Quantity "Quantity", pt.TransactionDate "Transaction Date", pt.ActualCost "Actual Cost", pp.Color "Color"
+from Production.Product pp
+join Production.TransactionHistory pt on pt.ProductID = pp.ProductID
+where (pt.Quantity between 5 and 8) and pp.Name like '%sport%'
+order by pt.TransactionDate desc, pp.Name
+
+-- Task 4
+select sum(pt.ActualCost) "Total Cost", count(*) "Number of records", ReferenceOrderID
+from Production.TransactionHistory pt
+group by ReferenceOrderID, TransactionDate
+having count(TransactionID) > 60 and TransactionDate > '2013/07/31'
+order by ReferenceOrderID
+
+-- Task 5
+select ss.Name, datediff(Month, sp.ModifiedDate, GETDATE()) months, (select avg(SalesLastYear) from Sales.SalesPerson) Average
+from Sales.SalesPerson sp join Sales.Store ss on sp.BusinessEntityID = ss.SalesPersonID
+where SalesLastYear > 0 and SalesLastYear < (select avg(SalesLastYear) from Sales.SalesPerson)
+order by ss.Name
+
+-- Task 6
+create view my_custom_view as
+select Name, ProductNumber, Color
+from Production.Product
+where Color is not null
+
+select * from my_custom_view
+-- Write some comments
+
+
+
+-- Task 7
+select humEmp.Gender,humEmp.MaritalStatus, per.FirstName, per.LastName, humHis.StartDate, humDep.GroupName, humHis.ShiftID
+from HumanResources.Employee humEmp
+        join  HumanResources.EmployeeDepartmentHistory humHis on humHis.BusinessEntityID = humEmp.BusinessEntityID
+        join HumanResources.Department humDep on humDep.DepartmentID = humHis.DepartmentID
+        join Person.Person per on humHis.BusinessEntityID = per.BusinessEntityID
+where (not  humEmp.BusinessEntityID in (select humEmp.BusinessEntityID
+                    from HumanResources.Employee humEmp 
+                      join HumanResources.JobCandidate jumJob on humEmp.BusinessEntityID = jumJob.BusinessEntityID )) and humHis.ShiftID =1 and humEmp.HireDate > '2012-01-01'
+order by humHis.StartDate asc
+
+
+-- 7 another version
+select e.Gender, e.MaritalStatus "Marital Status", p.FirstName "First Name", p.LastName "Last Name", h.StartDate "Job Start Date", d.GroupName "Department Group Name"
+from HumanResources.Employee e 
+  left join HumanResources.JobCandidate j on e.BusinessEntityID = j.BusinessEntityID
+  join Person.Person p on e.BusinessEntityID = p.BusinessEntityID
+  join HumanResources.EmployeeDepartmentHistory h on e.BusinessEntityID = h.BusinessEntityID
+  join HumanResources.Department d on h.DepartmentId = d.DepartmentID
+where j.JobCandidateID is null and e.HireDate > '2012-01-01'
+
